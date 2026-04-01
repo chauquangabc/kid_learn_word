@@ -11,13 +11,13 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   bool _soundOn = true;
   bool _notifyOn = false;
 
   void _handleLogout() {
     context.go('/login');
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadow.withOpacity(0.4),
+                      color: AppColors.shadow.withValues(alpha: 0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -295,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF7574).withOpacity(0.1),
+                        color: const Color(0xFFFF7574).withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -335,7 +335,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-
 class _SettingRow extends StatelessWidget {
   final String icon;
   final Color iconBg;
@@ -365,10 +364,7 @@ class _SettingRow extends StatelessWidget {
             Container(
               width: 34,
               height: 34,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
               alignment: Alignment.center,
               child: Text(icon, style: const TextStyle(fontSize: 16)),
             ),
@@ -395,10 +391,7 @@ class _SettingRow extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               '›',
-              style: TextStyle(
-                fontSize: 20,
-                color: AppColors.outlineVariant,
-              ),
+              style: TextStyle(fontSize: 20, color: AppColors.outlineVariant),
             ),
           ],
         ),
@@ -434,10 +427,7 @@ class _SettingToggleRow extends StatelessWidget {
           Container(
             width: 34,
             height: 34,
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(icon, style: const TextStyle(fontSize: 16)),
           ),
@@ -455,7 +445,7 @@ class _SettingToggleRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onToggle,
-            activeColor: const Color(0xFFF0B400),
+            activeThumbColor: const Color(0xFFF0B400),
             inactiveTrackColor: const Color(0xFFD7D9D7),
             thumbColor: WidgetStateProperty.all(AppColors.white),
           ),
