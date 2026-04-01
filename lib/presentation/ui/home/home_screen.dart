@@ -124,7 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: AppSpacing.sm),
-
                     // Hero Card
                     Container(
                       decoration: BoxDecoration(
@@ -161,10 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: AppSpacing.xl),
-
-                          // Start Button with scale animation
-                          _ScaleButton(
-                            onTap: () {},
+                          GestureDetector(
+                            onTap: () {
+                              debugPrint('Bắt đầu ngay');
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.s12,
@@ -175,15 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.full,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
                               ),
                               child: Text(
                                 'Bắt đầu ngay',
@@ -382,55 +372,6 @@ class _CategoryTray extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// Custom scale-on-press button
-class _ScaleButton extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-
-  const _ScaleButton({required this.child, required this.onTap});
-
-  @override
-  State<_ScaleButton> createState() => _ScaleButtonState();
-}
-
-class _ScaleButtonState extends State<_ScaleButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scale = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(scale: _scale, child: widget.child),
     );
   }
 }

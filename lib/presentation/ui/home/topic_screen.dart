@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lingo_bamboo/presentation/ui/home/view_3d_widget.dart';
+import 'package:lingo_bamboo/presentation/view_model/voice_setting/voice_setting_cubit.dart';
+import 'package:lingo_bamboo/presentation/view_model/voice_setting/voice_setting_state.dart';
 
 import '../../../data/models/topic_model.dart';
+import '../../../data/services/audio_cache_service.dart';
 import '../../component/color.dart';
 
 class TopicScreen extends StatefulWidget {
@@ -18,9 +21,9 @@ class TopicScreen extends StatefulWidget {
 class _TopicScreenState extends State<TopicScreen>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  String _language = 'vn';
   bool _isPlaying = false;
   late List<Item> _dataset;
+  final AudioCacheService _audioCacheService = AudioCacheService();
 
   late final PageController _pageController;
   final Map<String, Widget> _cache3DWidgets = {};
@@ -40,6 +43,25 @@ class _TopicScreenState extends State<TopicScreen>
     _pageController.dispose();
     _cache3DWidgets.clear();
     super.dispose();
+  }
+
+  Future<void> _handlePlaySound(String text) async {
+    if (_isPlaying) return;
+    setState(() => _isPlaying = true);
+    try {
+      await _audioCacheService.playItemAudio(text);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không thể phát âm thanh. Kiểm tra kết nối mạng.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPlaying = false);
+    }
   }
 
   String get _headerTitle {
@@ -87,78 +109,80 @@ class _TopicScreenState extends State<TopicScreen>
   Widget _build3DWidget(String id) {
     return View3dWidget(
       key: ValueKey('3d_$id'),
-      modelSource:
-          'assets/model_3d/cat.glb', // Khuyến nghị dùng ID thực tế thay vì fix cứng 'cat'
+      modelSource: 'assets/model_3d/cat.glb',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-
-            const SizedBox(height: 10),
-
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: _onPageChanged,
-                itemCount: _dataset.length,
-                itemBuilder: (context, index) {
-                  final item = _dataset[index];
-                  _cache3DWidgets.putIfAbsent(
-                    item.id,
-                    () => _build3DWidget(item.id),
-                  );
-                  return _FlashCardItem(
-                    key: ValueKey('flash_${item.id}'),
-                    item: item,
-                    language: _language,
-                    isPlaying: _isPlaying,
-                    cache3DWidget: _cache3DWidgets[item.id]!,
+    return BlocBuilder<VoiceSettingCubit, VoiceSettingState>(
+      builder: (context, state) {
+        final currentLanguage = state.language;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(_headerTitle),
+            centerTitle: true,
+            actions: [
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  context.read<VoiceSettingCubit>().changeLanguage(
+                    currentLanguage == 'vi' ? 'en' : 'vi',
                   );
                 },
+                child: Container(
+                  width: 50,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    currentLanguage.toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            _buildControlFooter(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Header chứa nút quay lại và đổi ngôn ngữ
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _CircleActionButton(icon: '←', onTap: () => context.pop()),
-          Text(
-            _headerTitle,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
+              const SizedBox(width: 15),
+            ],
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: _onPageChanged,
+                    itemCount: _dataset.length,
+                    itemBuilder: (context, index) {
+                      final item = _dataset[index];
+                      _cache3DWidgets.putIfAbsent(
+                        item.id,
+                        () => _build3DWidget(item.id),
+                      );
+                      return _FlashCardItem(
+                        key: ValueKey('flash_${item.id}'),
+                        item: item,
+                        language: currentLanguage,
+                        isPlaying: _isPlaying,
+                        onTap: () =>
+                            _handlePlaySound(item.getName(currentLanguage)),
+                        cache3DWidget: _cache3DWidgets[item.id]!,
+                      );
+                    },
+                  ),
+                ),
+                _buildControlFooter(),
+              ],
             ),
           ),
-          _LanguageToggle(
-            currentLang: _language,
-            onToggle: () {
-              HapticFeedback.mediumImpact();
-              setState(() => _language = _language == 'vn' ? 'en' : 'vn');
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -175,7 +199,6 @@ class _TopicScreenState extends State<TopicScreen>
             onTap: () => _navigateToPage(-1),
           ),
 
-          // Hiển thị số trang (Ví dụ: 1 / 10)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
             decoration: BoxDecoration(
@@ -251,6 +274,7 @@ class _FlashCardItem extends StatefulWidget {
   final String language;
   final bool isPlaying;
   final Widget cache3DWidget;
+  final VoidCallback onTap;
 
   const _FlashCardItem({
     super.key,
@@ -258,6 +282,7 @@ class _FlashCardItem extends StatefulWidget {
     required this.language,
     required this.isPlaying,
     required this.cache3DWidget,
+    required this.onTap,
   });
 
   @override
@@ -269,7 +294,6 @@ class _FlashCardItemState extends State<_FlashCardItem>
   bool _is3DMode = false;
 
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
 
   @override
@@ -342,7 +366,7 @@ class _FlashCardItemState extends State<_FlashCardItem>
 
           // Tên vật thể và nút loa
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+            padding: const .symmetric(vertical: 10, horizontal: 20),
             child: Column(
               children: [
                 Text(
@@ -355,8 +379,11 @@ class _FlashCardItemState extends State<_FlashCardItem>
                     letterSpacing: -1,
                   ),
                 ),
-                const SizedBox(height: 25),
-                _BigSoundButton(onTap: () {}, isPlaying: widget.isPlaying),
+                const SizedBox(height: 10),
+                _BigSoundButton(
+                  onTap: widget.onTap,
+                  isPlaying: widget.isPlaying,
+                ),
               ],
             ),
           ),
@@ -443,61 +470,6 @@ class _BigSoundButton extends StatelessWidget {
                 color: Colors.white,
                 size: 35,
               ),
-      ),
-    );
-  }
-}
-
-class _CircleActionButton extends StatelessWidget {
-  final String icon;
-  final VoidCallback onTap;
-
-  const _CircleActionButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
-        child: Text(
-          icon,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-}
-
-class _LanguageToggle extends StatelessWidget {
-  final String currentLang;
-  final VoidCallback onToggle;
-
-  const _LanguageToggle({required this.currentLang, required this.onToggle});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggle,
-      child: Container(
-        width: 50,
-        height: 40,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          currentLang.toUpperCase(),
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: AppColors.primary,
-          ),
-        ),
       ),
     );
   }

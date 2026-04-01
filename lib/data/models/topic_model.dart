@@ -13,7 +13,7 @@ class Item {
     required this.color,
   });
 
-  String getName(String language) => language == 'vn' ? nameVn : nameEn;
+  String getName(String language) => language == 'vi' ? nameVn : nameEn;
 }
 
 const List<Item> animals = [

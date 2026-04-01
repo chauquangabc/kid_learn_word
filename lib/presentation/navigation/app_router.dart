@@ -4,7 +4,7 @@ import 'package:lingo_bamboo/presentation/ui/auth/register_screen.dart';
 import 'package:lingo_bamboo/presentation/ui/game/game_screen.dart';
 import 'package:lingo_bamboo/presentation/ui/home/home_screen.dart';
 import 'package:lingo_bamboo/presentation/ui/profile/profile_screen.dart';
-import 'package:lingo_bamboo/presentation/ui/setting/setting_screen.dart';
+import 'package:lingo_bamboo/presentation/ui/home/setting_screen.dart';
 import 'package:lingo_bamboo/presentation/ui/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lingo_bamboo/presentation/ui/story/story_screen.dart';
@@ -42,16 +42,16 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/game',
-              builder: (context, state) => const GameScreen(),
+              path: '/story',
+              builder: (context, state) => const StoryScreen(),
             ),
           ],
         ),
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/story',
-              builder: (context, state) => const StoryScreen(),
+              path: '/game',
+              builder: (context, state) => const GameScreen(),
             ),
           ],
         ),
