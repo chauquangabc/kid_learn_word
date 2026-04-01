@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lingo_bamboo/presentation/navigation/app_router.dart';
-import 'package:lingo_bamboo/presentation/ui/auth/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

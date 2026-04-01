@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lingo_bamboo/presentation/ui/auth/register_screen.dart';
 
 import '../../component/color.dart';
 
@@ -127,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Login Button
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () => context.go('/home'),
                       child: Container(
                         width: double.infinity,
                         height: 70,
